@@ -1,0 +1,41 @@
+opam-version: "2.0"
+maintainer: "Hannes Mehnert <hannes@mehnert.org>"
+authors: ["Hannes Mehnert <hannes@mehnert.org>"]
+homepage: "https://github.com/hannesm/monitoring-experiments"
+doc: "https://hannesm.github.io/monitoring-experiments"
+dev-repo: "git+https://github.com/hannesm/monitoring-experiments.git"
+bug-reports: "https://github.com/mirage/monitoring-experiments/issues"
+license: "AGPL"
+
+depends: [
+  "ocaml" {>= "4.07.1"}
+  "logs" {>= "0.6.3"}
+  "metrics"
+  "astring" {>= "0.8.3"}
+  "tls" {>= "0.10.2"}
+  "mirage-clock" {>= "2.0.0"}
+  "mirage-time-lwt" {>= "1.1.0"}
+  "mirage-stack-lwt" {>= "1.4.0"}
+  "mirage-flow-lwt" {>= "1.5.0"}
+  "tcpip"
+  "mirage-net-solo5"
+  "mirage-solo5"
+  "ocaml-freestanding"
+  "bheap"
+]
+pin-depends: [
+ [ "ocaml-freestanding.dev" "git+https://github.com/hannesm/ocaml-freestanding.git#mallinfo" ]
+ [ "mirage-solo5.dev" "git+https://github.com/hannesm/mirage-solo5.git#stats" ]
+ [ "bheap.dev" "git+https://github.com/hannesm/bheap.git#expose-size" ]
+ [ "mirage-net-solo5.dev" "git+https://github.com/hannesm/mirage-net-solo5.git#stats" ]
+ [ "tcpip.dev" "git+https://github.com/hannesm/mirage-tcpip.git#stats" ]
+]
+build: [
+  ["dune" "subst"] {pinned}
+  ["dune" "build" "-p" name "-j" jobs]
+  ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+]
+synopsis: "Experiments with monitoring thingies"
+description: """
+bla bla
+"""
