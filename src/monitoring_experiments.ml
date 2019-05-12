@@ -132,7 +132,7 @@ module M = struct
 
     let timer get host t =
       let datas =
-        Metrics.SM.fold (fun src (tags, data) acc ->
+        R.SM.fold (fun src (tags, data) acc ->
             let name = Metrics.Src.name src in
             I.encode_line_protocol (host@tags) data name :: acc)
           (get ()) []
@@ -160,7 +160,7 @@ module M = struct
       one ()
 
     let create ?(interval = 10) ?hostname () =
-      let get, reporter = Metrics.store_reporter C.elapsed_ns () in
+      let get, reporter = R.store_reporter C.elapsed_ns () in
       Metrics.set_reporter reporter;
       let host = match hostname with None -> [] | Some host -> [vmname host] in
       let t = { flows = [] } in
