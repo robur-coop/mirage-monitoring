@@ -98,15 +98,12 @@ module L = struct
 
   let malloc_stat = OS.MM.malloc_metrics ~tags:Metrics.Tags.[]
 
-  let sleeper_stat = OS.Time.sleep_metrics ~tags:Metrics.Tags.[]
-
   let collect s () =
     let f () = Metrics.add gc_stat (fun x -> x) (fun d -> d ())
     and g () = Metrics.add log_stat (fun x -> x) (fun d -> d ())
     and h () = Metrics.add malloc_stat (fun x -> x) (fun d -> d ())
-    and i () = Metrics.add sleeper_stat (fun x -> x) (fun d -> d ())
     in
-    let one () = f (); g (); h (); i () ; Lwt.return_unit in
+    let one () = f (); g (); h (); Lwt.return_unit in
     let rec loop () = Lwt.join [ one (); s () ] >>= loop in
     loop ()
 end
