@@ -204,7 +204,7 @@ jfuLKkCfGcw9A8o=
 |} in
       X509.Encoding.Pem.Certificate.of_pem_cstruct1 data
 
-    let create s ?(port = 8093) ?hostname ?(interval = 10) certificates =
+    let create_tls ?(port = 8093) ?hostname ?(interval = 10) s certificates =
       Metrics.enable_all ();
       let flows = I.create ~interval ?hostname () in
       Lwt.async (L.collect (fun () -> T.sleep_ns (Duration.of_sec interval)));
@@ -217,6 +217,13 @@ jfuLKkCfGcw9A8o=
           TLS.server_of_flow server flow >|= function
           | Ok tls -> I.add_flow flows tls
           | Error e -> Log.err (fun m -> m "TLS error %a" TLS.pp_write_error e))
+
+    module TC = Pull(T)(C)(S.TCPV4)
+    let create_tcp ?(port = 8093) ?hostname ?(interval = 10) s =
+      Metrics.enable_all ();
+      let flows = TC.create ~interval ?hostname () in
+      Lwt.async (L.collect (fun () -> T.sleep_ns (Duration.of_sec interval)));
+      S.listen_tcpv4 s ~port (fun flow -> Lwt.return (TC.add_flow flows flow))
   end
 end
 

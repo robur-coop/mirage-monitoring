@@ -38,6 +38,7 @@ module M : sig
   end
 
   module S (T : Mirage_time_lwt.S) (P : Mirage_clock.PCLOCK) (C : Mirage_clock.MCLOCK) (S : Mirage_stack_lwt.V4) : sig
-    val create : S.t -> ?port:int -> ?hostname:string -> ?interval:int -> Tls.Config.own_cert -> unit
+    val create_tls : ?port:int -> ?hostname:string -> ?interval:int -> S.t -> Tls.Config.own_cert -> unit
+    val create_tcp : ?port:int -> ?hostname:string -> ?interval:int -> S.t -> unit
   end
 end
