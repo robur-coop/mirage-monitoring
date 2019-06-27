@@ -202,7 +202,9 @@ DDGH2wmML4sbbol/cJOucUrvAsQxRj39y+N737ojNUgybgtLiv1FyKzmBx24u0Bb
 jfuLKkCfGcw9A8o=
 -----END CERTIFICATE-----
 |} in
-      X509.Encoding.Pem.Certificate.of_pem_cstruct1 data
+      match X509.Certificate.decode_pem data with
+      | Ok c -> c
+      | Error (`Parse e) -> invalid_arg e
 
     let create_tls ?(port = 8093) ?hostname ?(interval = 10) s certificates =
       Metrics.enable_all ();
