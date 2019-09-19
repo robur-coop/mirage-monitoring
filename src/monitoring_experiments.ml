@@ -169,6 +169,7 @@ module M = struct
       let get, reporter = R.store_reporter C.elapsed_ns () in
       Metrics.set_reporter reporter;
       Metrics.enable_all ();
+      Lwt.async (L.collect (fun () -> T.sleep_ns (Duration.of_sec interval)));
       let host = match hostname with None -> [] | Some host -> [vmname host] in
       Lwt.async (timer_loop get host interval { flows = [ flow ] })
   end
