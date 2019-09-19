@@ -168,6 +168,7 @@ module M = struct
     let push ?(interval = 10) ?hostname flow =
       let get, reporter = R.store_reporter C.elapsed_ns () in
       Metrics.set_reporter reporter;
+      Metrics.enable_all ();
       let host = match hostname with None -> [] | Some host -> [vmname host] in
       Lwt.async (timer_loop get host interval { flows = [ flow ] })
   end
