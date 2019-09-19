@@ -163,6 +163,13 @@ module M = struct
       let t = { flows = [] } in
       Lwt.async (timer_loop get host interval t);
       t
+
+    (* actually a pushed *)
+    let push ?(interval = 10) ?hostname flow =
+      let get, reporter = R.store_reporter C.elapsed_ns () in
+      Metrics.set_reporter reporter;
+      let host = match hostname with None -> [] | Some host -> [vmname host] in
+      Lwt.async (timer_loop get host interval { flows = [ flow ] })
   end
 
   module S (T : Mirage_time_lwt.S) (P : Mirage_clock.PCLOCK) (C : Mirage_clock.MCLOCK) (S : Mirage_stack_lwt.V4) = struct
@@ -204,7 +211,7 @@ jfuLKkCfGcw9A8o=
 |} in
       match X509.Certificate.decode_pem data with
       | Ok c -> c
-      | Error (`Parse e) -> invalid_arg e
+      | Error (`Msg e) -> invalid_arg e
 
     let create_tls ?(port = 8093) ?hostname ?(interval = 10) s certificates =
       Metrics.enable_all ();

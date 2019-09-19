@@ -35,6 +35,8 @@ module M : sig
         deregistered. *)
 
     val add_flow : t -> F.flow -> unit
+
+    val push : ?interval:int -> ?hostname:string -> F.flow -> unit
   end
 
   module S (T : Mirage_time_lwt.S) (P : Mirage_clock.PCLOCK) (C : Mirage_clock.MCLOCK) (S : Mirage_stack_lwt.V4) : sig

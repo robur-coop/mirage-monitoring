@@ -21,11 +21,10 @@ depends: [
   "tcpip"
   "mirage-net-solo5"
   "mirage-solo5"
-  "ocaml-freestanding"
+  "ocaml-freestanding" {>= "0.4.5"}
   "bheap"
 ]
 pin-depends: [
- [ "ocaml-freestanding.dev" "git+https://github.com/hannesm/ocaml-freestanding.git#mallinfo" ]
  [ "mirage-solo5.dev" "git+https://github.com/hannesm/mirage-solo5.git#stats" ]
  [ "bheap.dev" "git+https://github.com/hannesm/bheap.git#expose-size" ]
  [ "mirage-net-solo5.dev" "git+https://github.com/hannesm/mirage-net-solo5.git#stats" ]
