@@ -13,7 +13,6 @@ depends: [
   "metrics"
   "astring" {>= "0.8.3"}
   "tls" {>= "0.10.2"}
-  "tls-mirage"
   "mirage-clock" {>= "2.0.0"}
   "mirage-time-lwt" {>= "1.1.0"}
   "mirage-stack-lwt" {>= "1.4.0"}

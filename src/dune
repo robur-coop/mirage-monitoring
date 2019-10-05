@@ -2,5 +2,5 @@
  (name monitoring_experiments)
  (public_name monitoring-experiments)
  (wrapped false)
- (libraries logs metrics astring tls tls-mirage mirage-time-lwt mirage-clock
+ (libraries logs metrics astring tls tls.mirage mirage-time-lwt mirage-clock
             mirage-flow-lwt mirage-stack-lwt mirage-solo5))
