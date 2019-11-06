@@ -9,9 +9,11 @@ module Make (T : Mirage_time.S) (S : Mirage_stack.V4) = struct
 
   let timer conn get host stack dst =
     let datas =
-      Metrics.SM.fold (fun src (tags, data) acc ->
+      Metrics.SM.fold (fun src things acc ->
           let name = Metrics.Src.name src in
-          Metrics_influx.encode_line_protocol (host@tags) data name :: acc)
+          List.map (fun (tags, data) ->
+              Metrics_influx.encode_line_protocol (host@tags) data name)
+            things @ acc)
         (get ()) []
     in
     let datas = String.concat "" datas in
