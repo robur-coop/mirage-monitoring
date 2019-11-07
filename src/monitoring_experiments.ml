@@ -49,13 +49,13 @@ module Make (T : Mirage_time.S) (S : Mirage_stack.V4) = struct
     in
     one ()
 
-  let create ?(interval = 10) ?hostname stack dst =
+  let create ?(interval = 10) ?hostname dst ?(port = 8094) stack =
     let get_cache, reporter = Metrics.cache_reporter () in
     Metrics.set_reporter reporter;
     Metrics.enable_all ();
     Metrics_lwt.init_periodic (fun () -> T.sleep_ns (Duration.of_sec interval));
     Metrics_lwt.periodically (OS.MM.malloc_metrics ~tags:Metrics.Tags.[]);
     let host = match hostname with None -> [] | Some host -> [vmname host] in
-    Lwt.async (timer_loop get_cache host interval stack dst)
+    Lwt.async (timer_loop get_cache host interval stack (dst, port))
 end
 
