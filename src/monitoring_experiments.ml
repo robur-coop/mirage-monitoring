@@ -1,7 +1,31 @@
 open Lwt.Infix
 
-let src = Logs.Src.create "influx" ~doc:"influx metrics reporter"
+let src = Logs.Src.create "monitoring-experiments" ~doc:"Monitoring experiments"
 module Log = (val Logs.src_log src : Logs.LOG)
+
+let create ~f =
+  let data : (string, int) Hashtbl.t = Hashtbl.create 7 in
+  (fun x ->
+     let key = f x in
+     let cur = match Hashtbl.find_opt data key with
+       | None -> 0
+       | Some x -> x
+     in
+     Hashtbl.replace data key (succ cur)),
+  (fun () ->
+     let data, total =
+       Hashtbl.fold (fun key value (acc, total) ->
+           (Metrics.uint key value :: acc), value + total)
+         data ([], 0)
+     in
+     Metrics.uint "total" total :: data)
+
+let counter_metrics ~f name =
+  let open Metrics in
+  let doc = "Counter metrics" in
+  let incr, get = create ~f in
+  let data thing = incr thing; Data.v (get ()) in
+  Src.v ~doc ~tags:Metrics.Tags.[] ~data name
 
 let vmname = Metrics.field ~doc:"name of the virtual machine" "vm" Metrics.String
 
