@@ -10,9 +10,9 @@ license: "AGPL"
 depends: [
   "ocaml" {>= "4.07.1"}
   "logs" {>= "0.6.3"}
-  "metrics" {>= "0.99.0"}
-  "metrics-lwt" {>= "0.99.0"}
-  "metrics-influx" {>= "0.99.0"}
+  "metrics" {>= "0.2.0"}
+  "metrics-lwt" {>= "0.2.0"}
+  "metrics-influx" {>= "0.2.0"}
   "astring" {>= "0.8.3"}
   "mirage-clock" {>= "3.0.0"}
   "mirage-time" {>= "2.0.0"}
