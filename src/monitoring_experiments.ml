@@ -29,6 +29,19 @@ let counter_metrics ~f name =
 
 let vmname = Metrics.field ~doc:"name of the virtual machine" "vm" Metrics.String
 
+let memory_metrics ~tags =
+  let open Metrics in
+  let doc = "Memory counters" in
+  let data () =
+    let stat = OS.Memory.quick_stat () in
+    Data.v
+      [ uint "memory heap words" stat.heap_words
+      ; uint "memory live words" stat.live_words
+      ; uint "memory stack words" stat.stack_words
+      ; uint "memory free words" stat.free_words ]
+  in
+  Src.v ~doc ~tags ~data "memory"
+
 module Make (T : Mirage_time.S) (S : Mirage_stack.V4V6) = struct
 
   let timer conn get host stack dst =
@@ -79,6 +92,7 @@ module Make (T : Mirage_time.S) (S : Mirage_stack.V4V6) = struct
     Metrics.enable_all ();
     Metrics_lwt.init_periodic (fun () -> T.sleep_ns (Duration.of_sec interval));
     Metrics_lwt.periodically (OS.MM.malloc_metrics ~tags:Metrics.Tags.[]);
+    Metrics_lwt.periodically (memory_metrics ~tags:Metrics.Tags.[]);
     let host = match hostname with None -> [] | Some host -> [vmname host] in
     Lwt.async (timer_loop get_cache host interval stack (dst, port))
 end
