@@ -29,7 +29,7 @@ let counter_metrics ~f name =
 
 let vmname = Metrics.field ~doc:"name of the virtual machine" "vm" Metrics.String
 
-module Make (T : Mirage_time.S) (S : Mirage_stack.V4) = struct
+module Make (T : Mirage_time.S) (S : Mirage_stack.V4V6) = struct
 
   let timer conn get host stack dst =
     let datas =
@@ -41,20 +41,20 @@ module Make (T : Mirage_time.S) (S : Mirage_stack.V4) = struct
     let datas = String.concat "" datas in
     let write flow =
       Log.debug (fun m -> m "sending measurements");
-      S.TCPV4.write flow (Cstruct.of_string datas) >|= function
+      S.TCP.write flow (Cstruct.of_string datas) >|= function
       | Ok () -> ()
       | Error e ->
-        Log.err (fun m -> m "error %a writing to metrics" S.TCPV4.pp_write_error e);
+        Log.err (fun m -> m "error %a writing to metrics" S.TCP.pp_write_error e);
         conn := None
     in
     match !conn with
     | None ->
       begin
         Log.debug (fun m -> m "creating connection");
-        S.TCPV4.create_connection (S.tcpv4 stack) dst >>= function
+        S.TCP.create_connection (S.tcp stack) dst >>= function
         | Error msg ->
           Log.err (fun m -> m "couldn't create connection %a"
-                      S.TCPV4.pp_error msg);
+                      S.TCP.pp_error msg);
           Lwt.return_unit
         | Ok flow ->
           conn := Some flow;
