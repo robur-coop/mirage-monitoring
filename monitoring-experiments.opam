@@ -8,20 +8,18 @@ bug-reports: "https://github.com/mirage/monitoring-experiments/issues"
 license: "AGPL"
 
 depends: [
-  "ocaml" {>= "4.07.1"}
+  "ocaml" {>= "4.08.0"}
   "logs" {>= "0.6.3"}
   "metrics" {>= "0.2.0"}
   "metrics-lwt" {>= "0.2.0"}
   "metrics-influx" {>= "0.2.0"}
-  "astring" {>= "0.8.3"}
   "mirage-clock" {>= "3.0.0"}
   "mirage-time" {>= "2.0.0"}
   "mirage-stack" {>= "2.2.0"}
-  "tcpip" {>= "6.1.99"}
+  "tcpip" {>= "6.3.0"}
   "mirage-net-solo5" {>= "0.6.2"}
   "mirage-solo5" {>= "0.6.4"}
   "ocaml-freestanding" {>= "0.4.5"}
-  "bheap"
 ]
 build: [
   ["dune" "subst"] {pinned}
