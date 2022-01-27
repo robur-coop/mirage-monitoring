@@ -2,5 +2,5 @@
  (name monitoring_experiments)
  (public_name monitoring-experiments)
  (wrapped false)
- (libraries logs metrics metrics-lwt metrics-influx mirage-time
-            mirage-clock mirage-flow mirage-stack mirage-solo5))
+ (libraries logs metrics metrics-lwt metrics-influx mirage-time tcpip
+            mirage-solo5))

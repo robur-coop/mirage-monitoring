@@ -42,7 +42,7 @@ let memory_metrics ~tags =
   in
   Src.v ~doc ~tags ~data "memory"
 
-module Make (T : Mirage_time.S) (S : Mirage_stack.V4V6) = struct
+module Make (T : Mirage_time.S) (S : Tcpip.Stack.V4V6) = struct
 
   let timer conn get host stack dst =
     let datas =
