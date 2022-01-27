@@ -20,3 +20,7 @@ The metrics (prefix `M`) sources can be enabled and disabled based on source nam
 First, if present, the all command is executed, then specific sources:
 - `M*:disable,memory:enable,net-solo5:enable` disables all metrics sources, and then enables *memory* and *net-solo5*
 - `Mnet-solo5:disable` disables the *net-solo5* metrics source.
+
+The log levels for the log sources can be inspected:
+- `l` reports the log level for all log sources
+- `lmonitoring-experiments,dns` reports the log level for monitoring-experiments and dns respectively
