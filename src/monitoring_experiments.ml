@@ -44,6 +44,59 @@ let memory_metrics ~tags =
   in
   Src.v ~doc ~tags ~data "memory"
 
+let get_log_levels s =
+  let qs = String.split_on_char ',' s in
+  let srcs = Logs.Src.list () in
+  let srcs = List.map (fun src -> Logs.Src.name src, Logs.Src.level src) srcs in
+  let* srcs =
+    match qs with
+    | [""] ->
+      let all_level = Logs.level () in
+      Ok (("*", all_level) :: List.filter (fun (_,l) -> l <> all_level) srcs)
+    | qs -> 
+      let* () =
+        match List.find_opt
+                (function
+                  | "*" -> false
+                  | q -> List.for_all (fun (n,_) -> q <> n) srcs)
+                qs
+        with
+        | Some bad_src -> Error ("unknown source: " ^ bad_src)
+        | None -> Ok ()
+      in
+      Ok (List.filter_map
+            (function
+              | ("*", _) as src -> Some src
+              | (name, _) as src -> if List.mem name qs then Some src else None)
+            srcs)
+  in
+  let levels =
+    List.map (fun (name, level) -> name ^ ":" ^ Logs.level_to_string level) srcs
+  in
+  Ok (`String (String.concat "," levels))
+
+let get_metrics s =
+  let qs = String.split_on_char ',' s in
+  let srcs = Metrics.Src.list () in
+  let* srcs =
+    match qs with
+    | [""] -> Ok srcs
+    | qs ->
+      let src_names = List.map Metrics.Src.name srcs in
+      let* () =
+        match List.find_opt (fun src -> not (List.mem src src_names)) qs with
+        | Some bad_src -> Error ("unknown source: " ^ bad_src)
+        | None -> Ok ()
+      in
+      Ok (List.filter (fun src -> List.mem (Metrics.Src.name src) qs) srcs)
+  in
+  let metrics =
+    List.map (fun src -> Metrics.Src.name src ^ ":" ^
+                         if Metrics.Src.is_active src then "enabled" else "disabled")
+      srcs
+  in
+  Ok (`String (String.concat "," metrics))
+
 let adjust_log_level s =
   let ts =
     List.map
@@ -58,9 +111,10 @@ let adjust_log_level s =
         | `Error msg -> Error msg)
       (Ok []) ts
   in
-  Ok (Mirage_runtime.set_level
-        ~default:(Option.value (Logs.level ()) ~default:Logs.Info)
-        oks)
+  Mirage_runtime.set_level
+    ~default:(Option.value (Logs.level ()) ~default:Logs.Info)
+    oks;
+  Ok `Empty
 
 let enable_of_str s =
   let s = String.lowercase_ascii s in
@@ -104,7 +158,7 @@ let adjust_metrics s =
       | None, _ ->
         Log.warn (fun m -> m "%s is not a valid metrics source." src))
     srcs ;
-  Ok ()
+  Ok `Empty
 
 module Make (T : Mirage_time.S) (S : Tcpip.Stack.V4V6) = struct
 
@@ -162,11 +216,15 @@ module Make (T : Mirage_time.S) (S : Tcpip.Stack.V4V6) = struct
                   match Cstruct.get_char data 0 with
                   | 'L' -> adjust_log_level rest
                   | 'M' -> adjust_metrics rest
+                  | 'l' -> get_log_levels rest
+                  | 'm' -> get_metrics rest
                   | _ -> Error "unknown command"
                 in
                 let msg =
                   match r with
-                  | Ok () -> "ok" | Error msg -> "error: " ^ msg
+                  | Ok `Empty -> "ok"
+                  | Ok `String reply -> "ok: " ^ reply
+                  | Error msg -> "error: " ^ msg
                 in
                 S.TCP.write f (Cstruct.of_string msg) >|= function
                 | Ok () -> ()
