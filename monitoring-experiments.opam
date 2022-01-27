@@ -9,6 +9,7 @@ license: "AGPL"
 
 depends: [
   "ocaml" {>= "4.08.0"}
+  "dune"
   "logs" {>= "0.6.3"}
   "metrics" {>= "0.2.0"}
   "metrics-lwt" {>= "0.2.0"}
