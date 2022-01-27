@@ -45,7 +45,7 @@ let memory_metrics ~tags =
   Src.v ~doc ~tags ~data "memory"
 
 let get_log_levels s =
-  let qs = (String.split_on_char ',' s) in
+  let qs = String.split_on_char ',' s in
   let srcs = Logs.Src.list () in
   let src_names = List.map Logs.Src.name srcs in
   let* srcs =
@@ -64,6 +64,27 @@ let get_log_levels s =
   in
   Ok (`String (String.concat "," levels))
 
+let get_metrics s =
+  let qs = String.split_on_char ',' s in
+  let srcs = Metrics.Src.list () in
+  let* srcs =
+    match qs with
+    | [""] -> Ok srcs
+    | qs ->
+      let src_names = List.map Metrics.Src.name srcs in
+      let* () =
+        match List.find_opt (fun src -> not (List.mem src src_names)) qs with
+        | Some bad_src -> Error ("unknown source: " ^ bad_src)
+        | None -> Ok ()
+      in
+      Ok (List.filter (fun src -> List.mem (Metrics.Src.name src) qs) srcs)
+  in
+  let metrics =
+    List.map (fun src -> Metrics.Src.name src ^ ":" ^
+                         if Metrics.Src.is_active src then "enabled" else "disabled")
+      srcs
+  in
+  Ok (`String (String.concat "," metrics))
 
 let adjust_log_level s =
   let ts =
@@ -185,6 +206,7 @@ module Make (T : Mirage_time.S) (S : Tcpip.Stack.V4V6) = struct
                   | 'L' -> adjust_log_level rest
                   | 'M' -> adjust_metrics rest
                   | 'l' -> get_log_levels rest
+                  | 'm' -> get_metrics rest
                   | _ -> Error "unknown command"
                 in
                 let msg =
