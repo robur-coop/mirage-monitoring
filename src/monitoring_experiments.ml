@@ -81,34 +81,22 @@ let adjust_metrics s =
         | [ src ; en ] ->
           let* en_or_d = enable_of_str en in
           Ok (`Src src, en_or_d)
-        | [ "src" ; src ; en ] ->
-          let* en_or_d = enable_of_str en in
-          Ok (`Src src, en_or_d)
-        | [ "tag" ; src ; en ] ->
-          let* en_or_d = enable_of_str en in
-          Ok (`Tag src, en_or_d)
         | _ -> Error ("couldn't decode metrics " ^ s))
       (String.split_on_char ',' s)
   in
-  let* (all, tags, srcs) =
+  let* (all, srcs) =
     List.fold_left (fun acc t ->
-        let* (all, tags, srcs) = acc in
+        let* (all, srcs) = acc in
         let* t = t in
         match t with
-        | `All, en_or_d -> Ok (Some en_or_d, tags, srcs)
-        | `Src s, en_or_d -> Ok (all, tags, (s, en_or_d) :: srcs)
-        | `Tag t, en_or_d -> Ok (all, (t, en_or_d) :: tags, srcs))
-      (Ok (None, [], [])) ts
+        | `All, en_or_d -> Ok (Some en_or_d, srcs)
+        | `Src s, en_or_d -> Ok (all, (s, en_or_d) :: srcs))
+      (Ok (None, [])) ts
   in
   (match all with
    | Some `Enable -> Metrics.enable_all ()
    | Some `Disable -> Metrics.disable_all ()
    | None -> ());
-  List.iter
-    (function
-      | t, `Enable -> Metrics.enable_tag t
-      | t, `Disable -> Metrics.disable_tag t)
-    tags ;
   List.iter (fun (src, e_or_d) ->
       match List.find_opt (fun s -> Metrics.Src.name s = src) (Metrics.Src.list ()), e_or_d with
       | Some src, `Enable -> Metrics.Src.enable src
