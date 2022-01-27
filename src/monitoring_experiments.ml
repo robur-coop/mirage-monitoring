@@ -48,15 +48,16 @@ let get_log_levels s =
   let qs = (String.split_on_char ',' s) in
   let srcs = Logs.Src.list () in
   let src_names = List.map Logs.Src.name srcs in
-  let* () =
-    match List.find_opt (fun src -> not (List.mem src src_names)) qs with
-    | Some bad_src -> Error ("unknown source: " ^ bad_src)
-    | None -> Ok ()
-  in
-  let srcs =
+  let* srcs =
     match qs with
-    | [""] -> srcs
-    | qs -> List.filter (fun src -> List.mem (Logs.Src.name src) qs) srcs
+    | [""] -> Ok srcs
+    | qs -> 
+      let* () =
+        match List.find_opt (fun src -> not (List.mem src src_names)) qs with
+        | Some bad_src -> Error ("unknown source: " ^ bad_src)
+        | None -> Ok ()
+      in
+      Ok (List.filter (fun src -> List.mem (Logs.Src.name src) qs) srcs)
   in
   let levels =
     List.map (fun src -> Logs.Src.name src ^ ":" ^ Logs.level_to_string (Logs.Src.level src)) srcs
