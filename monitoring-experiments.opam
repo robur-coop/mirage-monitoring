@@ -17,6 +17,7 @@ depends: [
   "tcpip" {>= "7.0.0"}
   "mirage-solo5" {>= "0.6.4"}
   "ocaml-freestanding" {>= "0.4.5"}
+  "mirage-runtime"
 ]
 build: [
   ["dune" "subst"] {pinned}
