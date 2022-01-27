@@ -53,15 +53,22 @@ let get_log_levels s =
     | [""] ->
       let all_level = Logs.level () in
       Ok (("*", all_level) :: List.filter (fun (_,l) -> l <> all_level) srcs)
-    | ["*"] ->
-      Ok ["*", Logs.level ()]
     | qs -> 
       let* () =
-        match List.find_opt (fun q -> List.for_all (fun (n,_) -> q <> n) srcs) qs with
+        match List.find_opt
+                (function
+                  | "*" -> false
+                  | q -> List.for_all (fun (n,_) -> q <> n) srcs)
+                qs
+        with
         | Some bad_src -> Error ("unknown source: " ^ bad_src)
         | None -> Ok ()
       in
-      Ok (List.filter (fun (name, _) -> List.mem name qs) srcs)
+      Ok (List.filter_map
+            (function
+              | ("*", _) as src -> Some src
+              | (name, _) as src -> if List.mem name qs then Some src else None)
+            srcs)
   in
   let levels =
     List.map (fun (name, level) -> name ^ ":" ^ Logs.level_to_string level) srcs
