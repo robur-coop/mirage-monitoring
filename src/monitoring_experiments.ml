@@ -47,20 +47,24 @@ let memory_metrics ~tags =
 let get_log_levels s =
   let qs = String.split_on_char ',' s in
   let srcs = Logs.Src.list () in
-  let src_names = List.map Logs.Src.name srcs in
+  let srcs = List.map (fun src -> Logs.Src.name src, Logs.Src.level src) srcs in
   let* srcs =
     match qs with
-    | [""] -> Ok srcs
+    | [""] ->
+      let all_level = Logs.level () in
+      Ok (("*", all_level) :: List.filter (fun (_,l) -> l <> all_level) srcs)
+    | ["*"] ->
+      Ok ["*", Logs.level ()]
     | qs -> 
       let* () =
-        match List.find_opt (fun src -> not (List.mem src src_names)) qs with
+        match List.find_opt (fun q -> List.for_all (fun (n,_) -> q <> n) srcs) qs with
         | Some bad_src -> Error ("unknown source: " ^ bad_src)
         | None -> Ok ()
       in
-      Ok (List.filter (fun src -> List.mem (Logs.Src.name src) qs) srcs)
+      Ok (List.filter (fun (name, _) -> List.mem name qs) srcs)
   in
   let levels =
-    List.map (fun src -> Logs.Src.name src ^ ":" ^ Logs.level_to_string (Logs.Src.level src)) srcs
+    List.map (fun (name, level) -> name ^ ":" ^ Logs.level_to_string level) srcs
   in
   Ok (`String (String.concat "," levels))
 

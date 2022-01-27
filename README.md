@@ -22,7 +22,8 @@ First, if present, the all command is executed, then specific sources:
 - `Mnet-solo5:disable` disables the *net-solo5* metrics source.
 
 The log levels for the log sources can be inspected:
-- `l` reports the log level for all log sources
+- `l` reports the default log level and the log level for all log sources
+- `l*` reports the default log level only
 - `lmonitoring-experiments,dns` reports the log level for monitoring-experiments and dns respectively.
 
 Likewise, metrics status can be similarly inspected:
