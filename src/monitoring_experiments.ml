@@ -53,46 +53,54 @@ let get_log_levels s =
     | [""] ->
       let all_level = Logs.level () in
       Ok (("*", all_level) :: List.filter (fun (_,l) -> l <> all_level) srcs)
-    | qs -> 
+    | ["*"] ->
+      let all_level = Logs.level () in
+      Ok (("*", all_level) :: srcs)
+    | qs ->
       let* () =
-        match List.find_opt
-                (function
-                  | "*" -> false
-                  | q -> List.for_all (fun (n,_) -> q <> n) srcs)
-                qs
-        with
+        let src_names = List.map fst srcs in
+        match List.find_opt (fun src -> not (List.mem src src_names)) qs with
         | Some bad_src -> Error ("unknown source: " ^ bad_src)
         | None -> Ok ()
       in
-      Ok (List.filter_map
-            (function
-              | ("*", _) as src -> Some src
-              | (name, _) as src -> if List.mem name qs then Some src else None)
-            srcs)
+      Ok (List.filter (fun (name, _) -> List.mem name qs) srcs)
   in
   let levels =
-    List.map (fun (name, level) -> name ^ ":" ^ Logs.level_to_string level) srcs
+    List.map (fun (name, level) ->
+        name ^ ":" ^ Logs.level_to_string level)
+      srcs
   in
   Ok (`String (String.concat "," levels))
 
 let get_metrics s =
   let qs = String.split_on_char ',' s in
   let srcs = Metrics.Src.list () in
+  let srcs =
+    List.map (fun src ->
+        Metrics.Src.name src, Metrics.Src.is_active src)
+      srcs
+  in
   let* srcs =
     match qs with
-    | [""] -> Ok srcs
+    | [""] ->
+      let all = Metrics.all_enabled () in
+      Ok (("*", all) :: (List.filter (fun (_, b) -> b <> all) srcs))
+    | ["*"] ->
+      let all = Metrics.all_enabled () in
+      let tags = Metrics.tags_enabled () in
+      Ok (("*", all) :: List.map (fun t -> "tag:" ^ t, true) tags @ srcs)
     | qs ->
-      let src_names = List.map Metrics.Src.name srcs in
       let* () =
+        let src_names = List.map fst srcs in
         match List.find_opt (fun src -> not (List.mem src src_names)) qs with
         | Some bad_src -> Error ("unknown source: " ^ bad_src)
         | None -> Ok ()
       in
-      Ok (List.filter (fun src -> List.mem (Metrics.Src.name src) qs) srcs)
+      Ok (List.filter (fun (n, _) -> List.mem n qs) srcs)
   in
   let metrics =
-    List.map (fun src -> Metrics.Src.name src ^ ":" ^
-                         if Metrics.Src.is_active src then "enabled" else "disabled")
+    List.map (fun (name, act) ->
+        name ^ ":" ^ if act then "enabled" else "disabled")
       srcs
   in
   Ok (`String (String.concat "," metrics))
@@ -100,7 +108,9 @@ let get_metrics s =
 let adjust_log_level s =
   let ts =
     List.map
-      (fst Mirage_runtime.Arg.log_threshold)
+      (fun s ->
+         try (fst Mirage_runtime.Arg.log_threshold) s with
+           Failure err -> `Error ("failure with " ^ s ^ ": " ^ err))
       (String.split_on_char ',' s)
   in
   let* oks =
@@ -135,22 +145,34 @@ let adjust_metrics s =
         | [ src ; en ] ->
           let* en_or_d = enable_of_str en in
           Ok (`Src src, en_or_d)
+        | [ "src" ; src ; en ] ->
+          let* en_or_d = enable_of_str en in
+          Ok (`Src src, en_or_d)
+        | [ "tag" ; tag ; en ] ->
+          let* en_or_d = enable_of_str en in
+          Ok (`Tag tag, en_or_d)
         | _ -> Error ("couldn't decode metrics " ^ s))
       (String.split_on_char ',' s)
   in
-  let* (all, srcs) =
+  let* (all, srcs, tags) =
     List.fold_left (fun acc t ->
-        let* (all, srcs) = acc in
+        let* (all, srcs, tags) = acc in
         let* t = t in
         match t with
-        | `All, en_or_d -> Ok (Some en_or_d, srcs)
-        | `Src s, en_or_d -> Ok (all, (s, en_or_d) :: srcs))
-      (Ok (None, [])) ts
+        | `All, en_or_d -> Ok (Some en_or_d, srcs, tags)
+        | `Src s, en_or_d -> Ok (all, (s, en_or_d) :: srcs, tags)
+        | `Tag t, en_or_d -> Ok (all, srcs, (t, en_or_d) :: tags))
+      (Ok (None, [], [])) ts
   in
   (match all with
    | Some `Enable -> Metrics.enable_all ()
    | Some `Disable -> Metrics.disable_all ()
    | None -> ());
+  List.iter (fun (tag, e_or_d) ->
+      match e_or_d with
+      | `Enable -> Metrics.enable_tag tag
+      | `Disable -> Metrics.disable_tag tag)
+    tags ;
   List.iter (fun (src, e_or_d) ->
       match List.find_opt (fun s -> Metrics.Src.name s = src) (Metrics.Src.list ()), e_or_d with
       | Some src, `Enable -> Metrics.Src.enable src
