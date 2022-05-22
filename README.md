@@ -1,4 +1,4 @@
-# Grafana Unikernel monitoring experiments
+# Grafana MirageOS Unikernel monitoring
 
 Using Influx, Telegraf, etc.
 
