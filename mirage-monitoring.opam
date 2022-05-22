@@ -1,10 +1,10 @@
 opam-version: "2.0"
-maintainer: "Hannes Mehnert <hannes@mehnert.org>"
-authors: ["Hannes Mehnert <hannes@mehnert.org>"]
-homepage: "https://github.com/roburio/monitoring-experiments"
-doc: "https://roburio.github.io/monitoring-experiments"
-dev-repo: "git+https://github.com/roburio/monitoring-experiments.git"
-bug-reports: "https://github.com/roburio/monitoring-experiments/issues"
+maintainer: "Robur <team@robur.coop>"
+authors: ["Robur <team@robur.coop>"]
+homepage: "https://git.robur.io/robur/mirage-monitoring"
+doc: "https://roburio.github.io/mirage-monitoring"
+dev-repo: "git+https://git.robur.io/robur/mirage-monitoring.git"
+bug-reports: "https://github.com/roburio/mirage-monitoring/issues"
 license: "AGPL"
 
 depends: [
@@ -19,6 +19,8 @@ depends: [
   "mirage-solo5" {>= "0.6.4"}
   "ocaml-freestanding" {>= "0.4.5"}
   "mirage-runtime"
+  "memtrace-mirage" {>= "0.2.1.2.2"}
+  "mirage-clock" {>= "4.0.0"}
 ]
 build: [
   ["dune" "subst"] {dev}

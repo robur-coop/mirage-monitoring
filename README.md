@@ -2,12 +2,19 @@
 
 Using Influx, Telegraf, etc.
 
-![Monitoring](https://raw.githubusercontent.com/roburio/monitoring-experiments/master/one.png)
+![Monitoring](https://raw.githubusercontent.com/roburio/mirage-monitoring/main/one.png)
+
+Best used on a private network interface for your unikernel.
+
+# Output metrics to influx / telegraf
+
+The provided `ip:port` in `create` is used to send every `interval` seconds
+gathered metrics to, using the Influx wire protocol.
 
 # Dynamic adjustments of Log level and Metrics reporting
 
-The create function has a *listener_port* argument. If this is provided, then
-on the given port TCP connections to the unikernel are possible. Each connection
+The `create` function has a *listener_port* argument (defaulting to 2323). On the
+customizable port TCP connections to the unikernel are possible. Each connection
 can transmit a command (as text) to adjust log level and enable or disable
 metrics sources:
 
@@ -31,3 +38,14 @@ Likewise, metrics status can be similarly inspected:
 - `m` reports the default metrics status and the metrics status for all metrics sources with a different status.
 - `m*` reports the default metrics status, all enabled tags, and the metrics status of all metrics sources.
 - `mmemory,net-solo5` reports the metrics status for memory and net-solo5 respectively.
+
+# Memprof tracing
+
+The `create` function has a `memtrace_port` argument (defualts to 4242). On this
+port, when a TCP client connects,
+[OCaml memory profiling](https://ocaml.org/api/Gc.Memprof.html) is started and
+dumped to the client. The `sampling_rate` (defaults to 1e-4) is used. This uses
+the [memprof-mirage](https://github.com/hannesm/memprof-mirage) package.
+
+The output trace is best being viewed with
+[memtrace_viewer](https://github.com/janestreet/memtrace_viewer/).

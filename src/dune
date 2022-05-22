@@ -1,6 +1,6 @@
 (library
- (name monitoring_experiments)
- (public_name monitoring-experiments)
+ (name mirage_monitoring)
+ (public_name mirage-monitoring)
  (wrapped false)
- (libraries logs metrics metrics-lwt metrics-influx mirage-time tcpip
-            mirage-solo5 mirage-runtime))
+ (libraries logs metrics metrics-lwt metrics-influx mirage-time mirage-clock
+            memtrace-mirage tcpip mirage-solo5 mirage-runtime))

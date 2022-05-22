@@ -1,2 +1,2 @@
 (lang dune 1.0)
-(name monitoring-experiments)
+(name mirage-monitoring)

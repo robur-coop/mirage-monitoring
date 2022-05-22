@@ -1,6 +1,6 @@
 open Lwt.Infix
 
-let src = Logs.Src.create "monitoring-experiments" ~doc:"Monitoring experiments"
+let src = Logs.Src.create "mirage-monitoring" ~doc:"MirageOS monitoring"
 module Log = (val Logs.src_log src : Logs.LOG)
 
 let ( let* ) = Result.bind
@@ -182,7 +182,8 @@ let adjust_metrics s =
     srcs ;
   Ok `Empty
 
-module Make (T : Mirage_time.S) (S : Tcpip.Stack.V4V6) = struct
+module Make (T : Mirage_time.S) (P : Mirage_clock.PCLOCK) (S : Tcpip.Stack.V4V6) = struct
+  module Memtrace = Memtrace.Make(P)(S.TCP)
 
   let timer conn get host stack dst =
     let datas =
@@ -226,46 +227,60 @@ module Make (T : Mirage_time.S) (S : Tcpip.Stack.V4V6) = struct
     in
     one ()
 
-  let create_listener stack = function
-    | None -> ()
-    | Some port ->
-      S.TCP.listen (S.tcp stack) ~port (fun f ->
-          (S.TCP.read f >>= function
-            | Ok `Data data ->
-              if Cstruct.length data > 0 then
-                let rest = Cstruct.(to_string (shift data 1)) in
-                let r =
-                  match Cstruct.get_char data 0 with
-                  | 'L' -> adjust_log_level rest
-                  | 'M' -> adjust_metrics rest
-                  | 'l' -> get_log_levels rest
-                  | 'm' -> get_metrics rest
-                  | _ -> Error "unknown command"
-                in
-                let msg =
-                  match r with
-                  | Ok `Empty -> "ok"
-                  | Ok `String reply -> "ok: " ^ reply
-                  | Error msg -> "error: " ^ msg
-                in
-                S.TCP.write f (Cstruct.of_string msg) >|= function
-                | Ok () -> ()
-                | Error e ->
-                  Log.warn (fun m -> m "write error on log & metrics listener %a"
-                               S.TCP.pp_write_error e)
-              else
-                (Log.debug (fun m -> m "received empty data on log & metrics listener");
-                 Lwt.return_unit)
-            | Ok `Eof ->
-              Log.debug (fun m -> m "EOF on log & metrics listener");
-              Lwt.return_unit
-            | Error e ->
-              Log.debug (fun m -> m "read error on log & metrics listener %a"
-                            S.TCP.pp_error e);
-              Lwt.return_unit) >>= fun () ->
-          S.TCP.close f)
+  let create_listener stack port =
+    S.TCP.listen (S.tcp stack) ~port (fun f ->
+        (S.TCP.read f >>= function
+          | Ok `Data data ->
+            if Cstruct.length data > 0 then
+              let rest = Cstruct.(to_string (shift data 1)) in
+              let r =
+                match Cstruct.get_char data 0 with
+                | 'L' -> adjust_log_level rest
+                | 'M' -> adjust_metrics rest
+                | 'l' -> get_log_levels rest
+                | 'm' -> get_metrics rest
+                | _ -> Error "unknown command"
+              in
+              let msg =
+                match r with
+                | Ok `Empty -> "ok"
+                | Ok `String reply -> "ok: " ^ reply
+                | Error msg -> "error: " ^ msg
+              in
+              S.TCP.write f (Cstruct.of_string msg) >|= function
+              | Ok () -> ()
+              | Error e ->
+                Log.warn (fun m -> m "write error on log & metrics listener %a"
+                             S.TCP.pp_write_error e)
+            else
+              (Log.debug (fun m -> m "received empty data on log & metrics listener");
+               Lwt.return_unit)
+          | Ok `Eof ->
+            Log.debug (fun m -> m "EOF on log & metrics listener");
+            Lwt.return_unit
+          | Error e ->
+            Log.debug (fun m -> m "read error on log & metrics listener %a"
+                          S.TCP.pp_error e);
+            Lwt.return_unit) >>= fun () ->
+        S.TCP.close f)
 
-  let create ?(interval = 10) ?hostname dst ?(port = 8094) ?listen_port stack =
+  let create ?(interval = 10) ?hostname dst ?(port = 8094) ?(listen_port = 2323)
+      ?(memtrace_port = 4242) ?(sampling_rate = 1e-4) stack =
+    S.TCP.listen (S.tcp stack) ~port:memtrace_port
+      (fun f ->
+         (* only allow a single tracing client *)
+       match Memtrace.Memprof_tracer.active_tracer () with
+       | Some _ ->
+           Log.warn (fun m -> m "memtrace tracing already active");
+           S.TCP.close f
+       | None ->
+           Logs.info (fun m -> m "starting memtrace tracing");
+           let tracer = Memtrace.start_tracing ~context:None ~sampling_rate f in
+           Lwt.async (fun () ->
+               S.TCP.read f >|= fun _ ->
+               Logs.info (fun m -> m "memtrace tracing read returned, closing");
+               Memtrace.stop_tracing tracer);
+           Lwt.return_unit);
     let get_cache, reporter = Metrics.cache_reporter () in
     Metrics.set_reporter reporter;
     Metrics.enable_all ();
