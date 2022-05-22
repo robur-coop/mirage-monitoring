@@ -5,7 +5,7 @@ homepage: "https://git.robur.io/robur/mirage-monitoring"
 doc: "https://roburio.github.io/mirage-monitoring"
 dev-repo: "git+https://git.robur.io/robur/mirage-monitoring.git"
 bug-reports: "https://github.com/roburio/mirage-monitoring/issues"
-license: "AGPL"
+license: "AGPL-3.0-only"
 
 depends: [
   "ocaml" {>= "4.08.0"}
