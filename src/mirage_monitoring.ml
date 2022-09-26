@@ -109,9 +109,7 @@ let get_metrics s =
 let adjust_log_level s =
   let ts =
     List.map
-      (fun s ->
-         try (fst Mirage_runtime.Arg.log_threshold) s with
-           Failure err -> `Error ("failure with " ^ s ^ ": " ^ err))
+      (fun s -> (fst Mirage_runtime.Arg.log_threshold) s)
       (String.split_on_char ',' s)
   in
   let* oks =
@@ -122,9 +120,7 @@ let adjust_log_level s =
         | `Error msg -> Error msg)
       (Ok []) ts
   in
-  Mirage_runtime.set_level
-    ~default:(Option.value (Logs.level ()) ~default:Logs.Info)
-    oks;
+  Mirage_runtime.set_level ~default:(Logs.level ()) oks;
   Ok `Empty
 
 let enable_of_str s =
