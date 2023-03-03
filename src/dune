@@ -3,4 +3,4 @@
  (public_name mirage-monitoring)
  (wrapped false)
  (libraries logs metrics metrics-lwt metrics-influx mirage-time mirage-clock
-            memtrace-mirage tcpip mirage-solo5 mirage-runtime))
+            memtrace-mirage tcpip mirage-runtime))

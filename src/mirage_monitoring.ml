@@ -31,20 +31,6 @@ let counter_metrics ~f name =
 
 let vmname = Metrics.field ~doc:"name of the virtual machine" "vm" Metrics.String
 
-let memory_metrics ~quick ~tags =
-  let open Metrics in
-  let doc = "Memory counters" in
-  let stat = Solo5_os.Memory.(if quick then quick_stat else stat) in
-  let data () =
-    let stat = stat () in
-    Data.v
-      [ uint "memory heap words" stat.heap_words
-      ; uint "memory live words" stat.live_words
-      ; uint "memory stack words" stat.stack_words
-      ; uint "memory free words" stat.free_words ]
-  in
-  Src.v ~doc ~tags ~data "memory"
-
 let get_log_levels s =
   let qs = String.split_on_char ',' s in
   let srcs = Logs.Src.list () in
@@ -261,8 +247,8 @@ module Make (T : Mirage_time.S) (P : Mirage_clock.PCLOCK) (S : Tcpip.Stack.V4V6)
             Lwt.return_unit) >>= fun () ->
         S.TCP.close f)
 
-  let create ?(interval = 10) ?(quick = true) ?hostname dst ?(port = 8094)
-      ?(listen_port = 2323) ?(memtrace_port = 4242) ?(sampling_rate = 1e-4) stack =
+  let create ?(interval = 10) ?hostname dst ?(port = 8094) ?(listen_port = 2323)
+      ?(memtrace_port = 4242) ?(sampling_rate = 1e-4) stack =
     S.TCP.listen (S.tcp stack) ~port:memtrace_port
       (fun f ->
          (* only allow a single tracing client *)
@@ -282,7 +268,6 @@ module Make (T : Mirage_time.S) (P : Mirage_clock.PCLOCK) (S : Tcpip.Stack.V4V6)
     Metrics.set_reporter reporter;
     Metrics.enable_all ();
     Metrics_lwt.init_periodic (fun () -> T.sleep_ns (Duration.of_sec interval));
-    Metrics_lwt.periodically (memory_metrics ~quick ~tags:Metrics.Tags.[]);
     let host = match hostname with None -> [] | Some host -> [vmname host] in
     Lwt.async (timer_loop get_cache host interval stack (dst, port));
     create_listener stack listen_port
