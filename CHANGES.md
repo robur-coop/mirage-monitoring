@@ -1,3 +1,8 @@
+# v0.0.4 (2023-03-05)
+
+* Remove mirage-solo5 dependency, now that mirage-solo5 and mirage-xen install
+  a memory metrics themselves
+
 # v0.0.3 (2022-09-26)
 
 * Upgrade to Mirage 4.3.0+
