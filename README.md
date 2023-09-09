@@ -2,7 +2,7 @@
 
 Using Influx, Telegraf, etc.
 
-![Monitoring](https://raw.githubusercontent.com/roburio/mirage-monitoring/main/one.png)
+![Monitoring](https://raw.githubusercontent.com/robur-coop/mirage-monitoring/main/one.png)
 
 Best used on a private network interface for your unikernel.
 

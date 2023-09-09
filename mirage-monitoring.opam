@@ -1,10 +1,10 @@
 opam-version: "2.0"
 maintainer: "Robur <team@robur.coop>"
 authors: ["Robur <team@robur.coop>"]
-homepage: "https://github.com/roburio/mirage-monitoring"
-doc: "https://roburio.github.io/mirage-monitoring"
-dev-repo: "git+https://github.com/roburio/mirage-monitoring.git"
-bug-reports: "https://github.com/roburio/mirage-monitoring/issues"
+homepage: "https://github.com/robur-coop/mirage-monitoring"
+doc: "https://robur-coop.github.io/mirage-monitoring"
+dev-repo: "git+https://github.com/robur-coop/mirage-monitoring.git"
+bug-reports: "https://github.com/robur-coop/mirage-monitoring/issues"
 license: "AGPL-3.0-only"
 
 depends: [
