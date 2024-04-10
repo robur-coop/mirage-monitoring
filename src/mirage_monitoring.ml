@@ -95,7 +95,7 @@ let get_metrics s =
 let adjust_log_level s =
   let ts =
     List.map
-      (fun s -> (fst Mirage_runtime.Arg.log_threshold) s)
+      (fun s -> (fst Mirage_runtime.Conv.log_threshold) s)
       (String.split_on_char ',' s)
   in
   let* oks =
