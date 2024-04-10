@@ -1,3 +1,8 @@
+# v0.0.5 (2024-04-10)
+
+* Update to mirage-runtime 4.5.0 API changes (Arg.log_threshold is now
+  Conv.log_threshold)
+
 # v0.0.4 (2023-03-05)
 
 * Remove mirage-solo5 dependency, now that mirage-solo5 and mirage-xen install
