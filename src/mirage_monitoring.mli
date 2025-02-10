@@ -5,7 +5,7 @@ val counter_metrics : f:('a -> string) -> string ->
 val vmname : string -> Metrics.field
 (** [vmname name] creates a [tag] with the virtual machine name. *)
 
-module Make (T : Mirage_time.S) (P : Mirage_clock.PCLOCK) (S : Tcpip.Stack.V4V6) : sig
+module Make (S : Tcpip.Stack.V4V6) : sig
 
   val create : ?interval:int -> ?hostname:string -> Ipaddr.t -> ?port:int ->
     ?listen_port:int -> ?memtrace_port:int -> ?sampling_rate:float -> S.t ->

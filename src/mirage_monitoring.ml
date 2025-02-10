@@ -165,8 +165,8 @@ let adjust_metrics s =
     srcs ;
   Ok `Empty
 
-module Make (T : Mirage_time.S) (P : Mirage_clock.PCLOCK) (S : Tcpip.Stack.V4V6) = struct
-  module Memtrace = Memtrace.Make(P)(S.TCP)
+module Make (S : Tcpip.Stack.V4V6) = struct
+  module Memtrace = Memtrace.Make(S.TCP)
 
   let timer conn get host stack dst =
     let datas =
@@ -204,7 +204,7 @@ module Make (T : Mirage_time.S) (P : Mirage_clock.PCLOCK) (S : Tcpip.Stack.V4V6)
     let rec one () =
       Lwt.join [
           timer conn get host stack dst;
-          T.sleep_ns (Duration.of_sec interval)
+          Mirage_sleep.ns (Duration.of_sec interval)
         ] >>= fun () ->
       (one[@tailcall]) ()
     in
@@ -267,7 +267,7 @@ module Make (T : Mirage_time.S) (P : Mirage_clock.PCLOCK) (S : Tcpip.Stack.V4V6)
     let get_cache, reporter = Metrics.cache_reporter () in
     Metrics.set_reporter reporter;
     Metrics.enable_all ();
-    Metrics_lwt.init_periodic (fun () -> T.sleep_ns (Duration.of_sec interval));
+    Metrics_lwt.init_periodic (fun () -> Mirage_sleep.ns (Duration.of_sec interval));
     let host = match hostname with None -> [] | Some host -> [vmname host] in
     Lwt.async (timer_loop get_cache host interval stack (dst, port));
     create_listener stack listen_port

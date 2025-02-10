@@ -2,5 +2,5 @@
  (name mirage_monitoring)
  (public_name mirage-monitoring)
  (wrapped false)
- (libraries logs metrics metrics-lwt metrics-influx mirage-time mirage-clock
+ (libraries logs metrics metrics-lwt metrics-influx mirage-sleep
             memtrace-mirage tcpip mirage-runtime))
