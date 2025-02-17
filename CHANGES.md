@@ -1,3 +1,8 @@
+# v0.0.6 (2025-02-17)
+
+* Remove functors for PCLOCK and TIME, use "dune variants" packages instead
+* Update to memtrace-mirage 0.2.1.2.3
+
 # v0.0.5 (2024-04-10)
 
 * Update to mirage-runtime 4.5.0 API changes (Arg.log_threshold is now
