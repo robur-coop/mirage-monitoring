@@ -1,3 +1,7 @@
+# v0.0.7 (2025-06-19)
+
+* Update to metrics 0.5.0 API changes (#4 @hannesm)
+
 # v0.0.6 (2025-02-17)
 
 * Remove functors for PCLOCK and TIME, use "dune variants" packages instead
