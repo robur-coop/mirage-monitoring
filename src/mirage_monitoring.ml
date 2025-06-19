@@ -170,9 +170,11 @@ module Make (S : Tcpip.Stack.V4V6) = struct
 
   let timer conn get host stack dst =
     let datas =
-      Metrics.SM.fold (fun src (tags, data) acc ->
+      Metrics.SM.fold (fun src measurements acc ->
           let name = Metrics.Src.name src in
-          Metrics_influx.encode_line_protocol (host@tags) data name :: acc)
+          List.fold_left (fun acc (tags, data) ->
+              Metrics_influx.encode_line_protocol (host@tags) data name :: acc)
+            acc measurements)
         (get ()) []
     in
     let datas = String.concat "" datas in
@@ -264,12 +266,12 @@ module Make (S : Tcpip.Stack.V4V6) = struct
                Logs.info (fun m -> m "memtrace tracing read returned, closing");
                Memtrace.stop_tracing tracer);
            Lwt.return_unit);
-    let get_cache, reporter = Metrics.cache_reporter () in
+    let reporter = Metrics.cache_reporter () in
     Metrics.set_reporter reporter;
     Metrics.enable_all ();
     Metrics_lwt.init_periodic (fun () -> Mirage_sleep.ns (Duration.of_sec interval));
     let host = match hostname with None -> [] | Some host -> [vmname host] in
-    Lwt.async (timer_loop get_cache host interval stack (dst, port));
+    Lwt.async (timer_loop Metrics.get_cache host interval stack (dst, port));
     create_listener stack listen_port
 end
 
