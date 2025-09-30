@@ -1,3 +1,7 @@
+# v0.0.8 (2025-09-30)
+
+* Update to cmdliner 2.0.0 API (!3 @hannesm)
+
 # v0.0.7 (2025-06-19)
 
 * Update to metrics 0.5.0 API changes (#4 @hannesm)
