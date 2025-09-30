@@ -95,15 +95,15 @@ let get_metrics s =
 let adjust_log_level s =
   let ts =
     List.map
-      (fun s -> (fst Mirage_runtime.Conv.log_threshold) s)
+      (fun s -> (Cmdliner.Arg.Conv.parser Mirage_runtime.Conv.log_threshold) s)
       (String.split_on_char ',' s)
   in
   let* oks =
     List.fold_left (fun acc t ->
         let* acc = acc in
         match t with
-        | `Ok l -> Ok (l :: acc)
-        | `Error msg -> Error msg)
+        | Ok l -> Ok (l :: acc)
+        | Error msg -> Error msg)
       (Ok []) ts
   in
   Mirage_runtime.set_level ~default:(Logs.level ()) oks;
